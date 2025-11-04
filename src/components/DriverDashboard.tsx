@@ -19,105 +19,141 @@ export default function DriverDashboard() {
   const [selectedStudentsForToday, setSelectedStudentsForToday] = useState<string[]>([]);
 
   const handleLogout = () => {
-    dispatch({ type: 'LOGOUT' });
+    try {
+      dispatch({ type: 'LOGOUT' });
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
   };
 
   const handleRouteSelect = (routeId: string) => {
-    dispatch({ type: 'SELECT_ROUTE', payload: routeId });
+    try {
+      dispatch({ type: 'SELECT_ROUTE', payload: routeId });
+    } catch (error) {
+      console.error('Erro ao selecionar rota:', error);
+    }
   };
 
   const handleAddRoute = () => {
     if (!newRouteName.trim()) return;
 
-    dispatch({
-      type: 'ADD_ROUTE',
-      payload: {
-        id: Date.now().toString(),
-        name: newRouteName.trim(),
-        students: [],
-        allStudents: [],
-        currentStudent: 0,
-        isActive: false,
-        points: [],
-        currentLocation: 0
-      }
-    });
+    try {
+      dispatch({
+        type: 'ADD_ROUTE',
+        payload: {
+          id: Date.now().toString(),
+          name: newRouteName.trim(),
+          students: [],
+          allStudents: [],
+          currentStudent: 0,
+          isActive: false,
+          points: [],
+          currentLocation: 0
+        }
+      });
 
-    setNewRouteName('');
-    setShowAddRoute(false);
+      setNewRouteName('');
+      setShowAddRoute(false);
+    } catch (error) {
+      console.error('Erro ao adicionar rota:', error);
+    }
   };
 
   const handleDeleteRoute = (routeId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (confirm('Tem certeza que deseja excluir esta rota? Esta ação não pode ser desfeita.')) {
-      dispatch({ type: 'DELETE_ROUTE', payload: routeId });
+    
+    try {
+      if (confirm('Tem certeza que deseja excluir esta rota? Esta ação não pode ser desfeita.')) {
+        dispatch({ type: 'DELETE_ROUTE', payload: routeId });
+      }
+    } catch (error) {
+      console.error('Erro ao excluir rota:', error);
     }
   };
 
   const handleAddStudent = () => {
     if (!newStudentName.trim() || !newStudentAddress.trim() || !state.selectedRoute) return;
 
-    const selectedRoute = state.routes.find(route => route.id === state.selectedRoute);
-    if (!selectedRoute) return;
+    try {
+      const selectedRoute = state.routes?.find(route => route.id === state.selectedRoute);
+      if (!selectedRoute) return;
 
-    const newStudent: Student = {
-      id: Date.now().toString(),
-      name: newStudentName.trim(),
-      address: newStudentAddress.trim(),
-      order: (selectedRoute.allStudents?.length || 0) + 1,
-      status: 'waiting'
-    };
+      const newStudent: Student = {
+        id: Date.now().toString(),
+        name: newStudentName.trim(),
+        address: newStudentAddress.trim(),
+        order: (selectedRoute.allStudents?.length || 0) + 1,
+        status: 'waiting'
+      };
 
-    dispatch({
-      type: 'ADD_STUDENT_TO_ROUTE',
-      payload: { routeId: state.selectedRoute, student: newStudent }
-    });
+      dispatch({
+        type: 'ADD_STUDENT_TO_ROUTE',
+        payload: { routeId: state.selectedRoute, student: newStudent }
+      });
 
-    setNewStudentName('');
-    setNewStudentAddress('');
-    setShowAddStudent(false);
+      setNewStudentName('');
+      setNewStudentAddress('');
+      setShowAddStudent(false);
+    } catch (error) {
+      console.error('Erro ao adicionar aluno:', error);
+    }
   };
 
   const handleDeleteStudent = (studentId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
     if (!state.selectedRoute) return;
     
-    if (confirm('Tem certeza que deseja excluir este aluno? Ele será removido da lista de seleção rápida.')) {
-      dispatch({
-        type: 'DELETE_STUDENT_FROM_ROUTE',
-        payload: { routeId: state.selectedRoute, studentId }
-      });
-      
-      // Remove o aluno da seleção do dia se estiver selecionado
-      setSelectedStudentsForToday(prev => prev.filter(id => id !== studentId));
+    try {
+      if (confirm('Tem certeza que deseja excluir este aluno? Ele será removido da lista de seleção rápida.')) {
+        dispatch({
+          type: 'DELETE_STUDENT_FROM_ROUTE',
+          payload: { routeId: state.selectedRoute, studentId }
+        });
+        
+        // Remove o aluno da seleção do dia se estiver selecionado
+        setSelectedStudentsForToday(prev => prev.filter(id => id !== studentId));
+      }
+    } catch (error) {
+      console.error('Erro ao excluir aluno:', error);
     }
   };
 
   const handleStartRoute = () => {
     if (!state.selectedRoute || selectedStudentsForToday.length === 0) return;
 
-    dispatch({
-      type: 'START_ROUTE_FLOW',
-      payload: { routeId: state.selectedRoute, studentIds: selectedStudentsForToday }
-    });
+    try {
+      dispatch({
+        type: 'START_ROUTE_FLOW',
+        payload: { routeId: state.selectedRoute, studentIds: selectedStudentsForToday }
+      });
 
-    setShowStudentSelection(false);
-    setSelectedStudentsForToday([]);
+      setShowStudentSelection(false);
+      setSelectedStudentsForToday([]);
+    } catch (error) {
+      console.error('Erro ao iniciar rota:', error);
+    }
   };
 
   const handleStudentStatus = (studentId: string, status: 'picked' | 'not_answered') => {
     if (!state.selectedRoute) return;
 
-    dispatch({
-      type: 'UPDATE_STUDENT_STATUS',
-      payload: { routeId: state.selectedRoute, studentId, status }
-    });
+    try {
+      dispatch({
+        type: 'UPDATE_STUDENT_STATUS',
+        payload: { routeId: state.selectedRoute, studentId, status }
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar status do aluno:', error);
+    }
   };
 
-  const selectedRoute = state.routes.find(route => route.id === state.selectedRoute);
-  const currentStudent = selectedRoute?.students[selectedRoute.currentStudent || 0];
+  // Verificações de segurança para evitar crashes
+  const routes = state.routes || [];
+  const selectedRoute = routes.find(route => route.id === state.selectedRoute);
+  const currentStudent = selectedRoute?.students?.[selectedRoute.currentStudent || 0];
   
   // Lógica corrigida para detectar quando a rota está finalizada
   const isRouteFinished = selectedRoute?.isActive && 
@@ -131,8 +167,12 @@ export default function DriverDashboard() {
       <header className="bg-black text-white shadow-lg border-b-2 border-yellow-400">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center">
-              <Bus className="w-6 h-6 text-black" />
+            <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center">
+              <img 
+                src="https://k6hrqrxuu8obbfwn.public.blob.vercel-storage.com/temp/ab3b2a89-6cd7-4607-a336-b6b280e2f8fa.jpg" 
+                alt="Logo CAAT" 
+                className="w-16 h-16 rounded-full object-cover"
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold">CAAT</h1>
@@ -227,7 +267,7 @@ export default function DriverDashboard() {
 
             {/* Lista de Rotas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {state.routes.map((route) => {
+              {routes.map((route) => {
                 const totalStudents = route.allStudents?.length || 0;
                 const activeStudents = route.students?.length || 0;
                 return (
@@ -273,7 +313,7 @@ export default function DriverDashboard() {
             </div>
 
             {/* Mensagem quando não há rotas */}
-            {state.routes.length === 0 && (
+            {routes.length === 0 && (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MapPin className="w-8 h-8 text-gray-400" />
@@ -296,12 +336,12 @@ export default function DriverDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-3xl font-bold text-white">{selectedRoute.name}</h2>
+                <h2 className="text-3xl font-bold text-white">{selectedRoute?.name || 'Rota'}</h2>
                 <div className="flex items-center space-x-2 text-gray-300 mt-1">
                   <User className="w-4 h-4" />
                   <span>
-                    {selectedRoute.allStudents?.length || 0} alunos cadastrados | 
-                    {selectedRoute.students?.length || 0} alunos ativos
+                    {selectedRoute?.allStudents?.length || 0} alunos cadastrados | 
+                    {selectedRoute?.students?.length || 0} alunos ativos
                   </span>
                 </div>
               </div>
@@ -343,7 +383,7 @@ export default function DriverDashboard() {
                 onClick={() => setShowStudentSelection(true)}
                 variant="outline"
                 className="border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-black h-12"
-                disabled={!selectedRoute.allStudents || selectedRoute.allStudents.length === 0}
+                disabled={!selectedRoute?.allStudents || selectedRoute.allStudents.length === 0}
               >
                 <List className="w-5 h-5 mr-2" />
                 Selecionar Alunos do Dia
@@ -353,7 +393,7 @@ export default function DriverDashboard() {
                 onClick={handleStartRoute}
                 variant="outline"
                 className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white h-12"
-                disabled={!selectedRoute.students || selectedRoute.students.length === 0}
+                disabled={!selectedRoute?.students || selectedRoute.students.length === 0}
               >
                 <Play className="w-5 h-5 mr-2" />
                 Iniciar Fluxo de Busca
@@ -447,7 +487,7 @@ export default function DriverDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {selectedRoute.allStudents?.map((student) => (
+                    {selectedRoute?.allStudents?.map((student) => (
                       <div
                         key={student.id}
                         className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-all ${
@@ -482,7 +522,7 @@ export default function DriverDashboard() {
                           </div>
                         )}
                       </div>
-                    ))}
+                    )) || []}
                   </div>
                   <div className="flex space-x-3 mt-6">
                     <Button
@@ -506,7 +546,7 @@ export default function DriverDashboard() {
             )}
 
             {/* Lista de Alunos Cadastrados */}
-            {selectedRoute.allStudents && selectedRoute.allStudents.length > 0 && (
+            {selectedRoute?.allStudents && selectedRoute.allStudents.length > 0 && (
               <Card className="bg-gray-800 border-gray-700">
                 <CardHeader>
                   <CardTitle className="text-white">Alunos Cadastrados na Rota</CardTitle>
@@ -544,7 +584,7 @@ export default function DriverDashboard() {
             )}
 
             {/* Fluxo de Busca Ativo */}
-            {selectedRoute.isActive && selectedRoute.students && selectedRoute.students.length > 0 && !isRouteFinished && (
+            {selectedRoute?.isActive && selectedRoute?.students && selectedRoute.students.length > 0 && !isRouteFinished && (
               <Card className="bg-gray-800 border-yellow-400 border-2">
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2 text-white">

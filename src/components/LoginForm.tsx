@@ -46,8 +46,12 @@ export default function LoginForm() {
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-yellow-900 flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-white border-yellow-400 border-2 shadow-2xl">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center">
-            <Bus className="w-8 h-8 text-black" />
+          <div className="mx-auto w-16 h-16 rounded-full flex items-center justify-center overflow-hidden">
+            <img 
+              src="https://k6hrqrxuu8obbfwn.public.blob.vercel-storage.com/temp/5a3892e4-6eab-4706-a221-4bf5689da20b.jpg" 
+              alt="Logo CAAT" 
+              className="w-16 h-16 object-cover rounded-full"
+            />
           </div>
           <CardTitle className="text-3xl font-bold text-black">CAAT</CardTitle>
           <CardDescription className="text-gray-600">
